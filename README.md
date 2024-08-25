@@ -68,3 +68,13 @@ Finally, this is the content of cluster 10.
 
 End of the text.
 ```
+
+Testdata.csv **MUST** have 3 columns "RowID,DataID,Value"
+e.g.
+```
+RowID,DataID,Value
+DemoContent,BEDARFS-MENGE,1.0
+DemoContent,KOMPONENTENMENGE,2.0
+TextHere,RUESTKOSTEN, 50.5
+TextHere,STL-VARIANT,C
+```
