@@ -13,7 +13,6 @@ def read_log(file_path):
 
 def read_csv(file_path):
     data = []
-    
     with open(file_path, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
 
@@ -23,8 +22,12 @@ def read_csv(file_path):
     data_objects = {}
 
     for obj in data:
-        if obj['RowID'] not in data_objects:
-            data_objects[obj['RowID']] = {}
-        data_objects[obj['RowID']][obj['DataID']] = ul.parse_value(obj['Value'])
+        article_id = obj['ArticleID']
+        if article_id not in data_objects:
+            data_objects[article_id] = {}
+            section_id = obj['SectionID']
+            if section_id not in data_objects[article_id]:
+                data_objects[article_id][section_id] = {}
+            data_objects[article_id][section_id][obj['DataID']] = ul.parse_value(obj['Value'])
 
     return data_objects

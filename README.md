@@ -1,57 +1,73 @@
 # cluster-comparison
- LOG data should be like this:
+
+The program is used to compare the results in the log file with the expected data in the CSV file.
+
+
+## CSV
+
+A .csv file which contains the expected values **MUST** have 3 columns "ArticleID,SectionID,DataID,Value"
+e.g.
+```
+ArticleID,SectionID,DataID,Value
+AN-1,DemoContent,BEDARFS-MENGE,1.0
+AN-1,DemoContent,KOMPONENTENMENGE,2.0
+AN-2,TextHere,RUESTKOSTEN, 50.5
+AN-2,TextHere,STL-VARIANT,C
+```
+
+## LOG FILE
+In the log file, the program requires setting ID keys corresponding to: article, section, data, and value:
+
+#ATA is used for an article
+#ATS is used for a section
+#ATD is used for a data variable
+
+
+.log file should be like this:
 ```
 This is the first paragraph of the text.
-
-#ATSBEGIN-randomABC
-This is the content of cluster 1.
-#ATSEND-randomABC
-
-Some other content between clusters.
-
-#ATSBEGIN-XYZ123
-This is the content of cluster 2.
-#ATSEND-XYZ123
-
-The text continues here.
-
+#ATABEGIN-AN-1
 #ATSBEGIN-AlphaBeta
-This is the content of cluster 3, which includes multiple lines
+This is the content of a cluster, which includes multiple lines
 and may contain special characters like !@#$%^&*.
 #ATSEND-AlphaBeta
 
 Other interleaved content.
 
 #ATSBEGIN-SampleText
-Cluster 4: This text may include numbers such as 12345.
+This text may include numbers such as 12345.
 #ATSEND-SampleText
 
 Additional content between clusters.
 
 #ATSBEGIN-AnotherOne
-This is the content of cluster 5.
+This is the content of cluster.
 #ATSEND-AnotherOne
 
-The text continues here.
+#ATAEND-AN-1
+
+This is the text
+
+#ATABEGIN-AN-2
 
 #ATSBEGIN-DemoContent
-Cluster 6: A complete sentence with punctuation!
-asdhjkasjdhkj asdkjaslkdjlk aslkdjaslk jlk aslkdjlk #ATD-BEDARFS-MENGE=00001,000
-asdw xcyjh 23123 434opxsc oswopdaspodpo pojkmw.ewqlekkl wiqepo #ATD-KOMPONENTENMENGE=00002,000
+Cluster: A complete sentence with punctuation!
+This is the content of cluster, which includes multiple lines #ATD-BEDARFS-MENGE=00001,000
+This text may include numbers such as 12345 #ATD-KOMPONENTENMENGE=00002,000
 #ATSEND-DemoContent
 
 The content continues.
 
 #ATSBEGIN-TestCase
-This is the content of cluster 7, used to test regex.
+This is the content of cluster, used to test regex.
 #ATSEND-TestCase
 
 Intervening text.
 
 #ATSBEGIN-TextHere
-This is the content of cluster 8.
-asdw xcyjh 23123 434opxsc oswopdaspodpo pojkmw.ewqlekkl wiqepo #ATD-RUESTKOSTEN=000050,500
-asdw xcyjh 23123 434opxsc oswopdaspodpo pojkmw.ewqlekkl wiqepo #ATD-STL-VARIANT='C'
+This is the content of cluster.
+Content of cluster: Various characters @#%^*()! #ATD-RUESTKOSTEN=000050,500
+this is the content of cluster #ATD-STL-VARIANT='C'
 #ATSEND-TextHere
 
 Continuing text.
@@ -60,21 +76,8 @@ Continuing text.
 Content of cluster 9: Various characters @#%^*()!
 #ATSEND-LogEntry
 
-Continuing interleaved content.
-
-#ATSBEGIN-ExampleEnd
-Finally, this is the content of cluster 10.
-#ATSEND-ExampleEnd
-
+#ATAEND-AN-2
 End of the text.
 ```
 
-Testdata.csv **MUST** have 3 columns "RowID,DataID,Value"
-e.g.
-```
-RowID,DataID,Value
-DemoContent,BEDARFS-MENGE,1.0
-DemoContent,KOMPONENTENMENGE,2.0
-TextHere,RUESTKOSTEN, 50.5
-TextHere,STL-VARIANT,C
-```
+

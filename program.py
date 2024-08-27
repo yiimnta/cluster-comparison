@@ -4,53 +4,68 @@ import utils as ul
 import xml.etree.ElementTree as ET
 
 class Program:
-    def __init__(self, row_pattern, data_pattern, log_filepath, csv_filepath, all_match = False):
-        self.row_pattern = row_pattern
-        self.data_pattern = data_pattern
+    def __init__(self, log_filepath, csv_filepath, all_match = False, debug = False):
+        
         self.log_filepath = log_filepath
         self.csv_filepath = csv_filepath
         self.all_match = all_match
+        self.debug = debug
 
-    def run(self):
+    def read_data(self):
+        log_articles = {}
+        article_pattern = r"#ATABEGIN-([^\n]+)\n(.*?)#ATAEND-\1"
+        section_pattern = r"#ATSBEGIN-([^\n]+)\n(.*?)#ATSEND-\1"
+        data_pattern = r'#ATD-([^\n]+)(.*?)\n'
+
         input_text = iou.read_log(self.log_filepath)
-
         # using re.findall to find all clusters
-        matches = re.findall(self.row_pattern, input_text, re.DOTALL)
+        articles_clusters = re.findall(article_pattern, input_text, re.DOTALL)
 
-        if not matches:
-            print("Not found any cluster")
-            return
-        
-        input_objects = {}
+        if not articles_clusters:
+            print("Article cluster not found")
+            return {}
 
-        for section_id, section_content in matches:
-            data_clusters = data_pattern.findall(section_content)
+        for article_id, article_content in articles_clusters:
+            section_clusters = re.findall(section_pattern, article_content, re.DOTALL)
 
-            if len(data_clusters) == 0:
+            if len(section_clusters) == 0:
                 continue
             
-            if section_id not in input_objects:
-                input_objects[section_id] = {}
+            if article_id not in log_articles:
+                log_articles[article_id] = {}
 
-            # reading data cluster
-            for cluster, _ in data_clusters:
+            # reading section clusters
+            for section_id, section_content in section_clusters:
+                data_clusters = re.findall(data_pattern, section_content, re.DOTALL)
+
+                if len(data_clusters) == 0:
+                    continue
                 
-                id_data = cluster.strip().split('=')
-                if len(id_data) != 2:
-                    break
+                if section_id not in log_articles[article_id]:
+                    log_articles[article_id][section_id] = {}
 
-                input_objects[section_id][id_data[0]] = ul.parse_value(id_data[1].strip())
+                # reading data cluster
+                for cluster, _ in data_clusters:
+                    
+                    id_data = cluster.strip().split('=')
+                    if len(id_data) != 2:
+                        continue
 
-        test_objects = iou.read_csv(self.csv_filepath)
-        
-        return ul.compare_objects(input_objects, test_objects, all_match)
+                    log_articles[article_id][section_id][id_data[0]] = ul.parse_value(id_data[1].strip())
 
-row_pattern = r"#ATSBEGIN-([^\n]+)\n(.*?)#ATSEND-\1"
-data_pattern = re.compile(r'#ATD-([^\n]+)(.*?)\n')
+        return log_articles
+
+    def run(self):
+        log_articles = self.read_data()
+        test_articles = iou.read_csv(self.csv_filepath)
+
+        return ul.compare_objects(log_articles, test_articles, self.all_match, self.debug)
+
 log_filepath = '.\data\data.log'
 csv_filepath = '.\data\\testdata.csv'
 all_match = True
+debug = True
 
-program = Program(row_pattern, data_pattern, log_filepath, csv_filepath, all_match)
+program = Program( log_filepath, csv_filepath, all_match, debug)
 if program.run() == True:
     print("Test successfully!")
