@@ -1,0 +1,20 @@
+{
+    "title": "Artikel",
+    "type": "head",
+    "value": "#ATABEGIN-([^\n]+)\n(.*?)#ATAEND-\\1",
+    "children": [
+        {
+            "title": "Sektion",
+            "type": "head",
+            "value": "#ATSBEGIN-([^\n]+)\n(.*?)#ATSEND-\\1",
+            "children": [
+                {
+                    "title": "Value",
+                    "type": "data",
+                    "value": "#ATD-([^\n]+)(.*?)\n",
+                    "children": []
+                }
+            ]
+        }
+    ]
+}

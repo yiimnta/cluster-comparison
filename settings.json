@@ -1,0 +1,14 @@
+{
+    "log_file":"./data/data.log",
+    "expect_file":"./data/testdata.csv",
+    "pattern": "./pattern.json",
+    "header": true,
+    "full_scan": false,
+    "xml_output": {
+        "log": true,
+        "test": true,
+        "path": "./xml/"
+    },
+    "all_match": true,
+    "debug": true
+}
