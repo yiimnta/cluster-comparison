@@ -4,15 +4,22 @@
     "value": "#ATABEGIN-([^\n]+)\n(.*?)#ATAEND-\\1",
     "children": [
         {
-            "title": "Sektion",
+            "title": "OBERSTER-ARTIKEL-EINTRAGEN",
             "type": "head",
             "value": "#ATSBEGIN-([^\n]+)\n(.*?)#ATSEND-\\1",
             "children": [
                 {
-                    "title": "Value",
-                    "type": "data",
-                    "value": "#ATD-([^\n]+)(.*?)\n",
-                    "children": []
+                    "title": "Kostenart",
+                    "type": "head",
+                    "value": "#ATSBEGIN-([^\n]+)\n(.*?)#ATSEND-\\1",
+                    "children": [
+                        {
+                            "title": "Value",
+                            "type": "data",
+                            "value": "#ATD-([^\n]+)(.*?)\n",
+                            "children": []
+                        }
+                    ]
                 }
             ]
         }

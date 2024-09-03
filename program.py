@@ -4,21 +4,26 @@ import os
 import io_utils as iou
 import utils as ul
 from enum import Enum
+import jpype
 
 class Tag(Enum):
     LOG_FILE = "log_file"
-    EXPECT_FILE = "expect_file"
+    EXPECTED_FILE = "expected_file"
     FULL_SCAN = "full_scan"
     VALUE = "value"
     TITLE = "title"
     TYPE = "type"
     CHILDREN = "children"
     DEBUG = "debug"
-    XML_OUTPUT = "xml_output"
+    XML = "xml"
+    JSON = "json"
+    DIAGRAM = "diagram"
     LOG = "log"
-    TEST = "test"
+    EXPECTED = "expected"
     PATH = "path"
     ALL_MATCH = "all_match"
+    COMPARISON = "comparison"
+    WRITE_FILE = "write_file"
 
 class Program:
     def __init__(self, settings: json, pattern: json):
@@ -30,8 +35,8 @@ class Program:
             print(f"Log-File not found: {self.settings[Tag.LOG_FILE.value]}")
             return False
 
-        if not os.path.exists(self.settings[Tag.EXPECT_FILE.value]):
-            print(f"Expect-File not found: {self.settings[Tag.EXPECT_FILE.value]}")
+        if not os.path.exists(self.settings[Tag.EXPECTED_FILE.value]):
+            print(f"Expect-File not found: {self.settings[Tag.EXPECTED_FILE.value]}")
             return False
 
         log_objects = {}
@@ -69,24 +74,39 @@ class Program:
                         continue
                     self.read_pattern(child, child_clusters, output_objects[obj_id])
 
-    def run(self):
-        log_data = self.analyse_data()
-        if self.settings[Tag.DEBUG.value] or self.settings[Tag.XML_OUTPUT.value][Tag.LOG.value]:
-            xml_data = ul.dict_to_xml(log_data)
-            if self.settings[Tag.DEBUG.value]:
+    def print_data(self, data, con_tag, suffix): 
+        if self.settings[Tag.XML.value][Tag.DEBUG.value] or self.settings[Tag.XML.value][con_tag]:
+            xml_data = ul.dict_to_xml(data)
+            if self.settings[Tag.XML.value][Tag.DEBUG.value]:
                 print(xml_data)
-            if self.settings[Tag.XML_OUTPUT.value][Tag.LOG.value]:
-                ul.write_xml(xml_data,self.settings[Tag.XML_OUTPUT.value][Tag.PATH.value], suffix="log_")
+            if self.settings[Tag.XML.value][con_tag]:
+                ul.write_xml(xml_data,self.settings[Tag.XML.value][Tag.PATH.value], suffix)
         
-        expected_data = iou.read_csv(self.settings[Tag.EXPECT_FILE.value])
-        if self.settings[Tag.DEBUG.value] or self.settings[Tag.XML_OUTPUT.value][Tag.LOG.value]:
-            xml_data = ul.dict_to_xml(expected_data)
-            if self.settings[Tag.DEBUG.value]:
-                print(xml_data)
-            if self.settings[Tag.XML_OUTPUT.value][Tag.LOG.value]:
-                ul.write_xml(xml_data,self.settings[Tag.XML_OUTPUT.value][Tag.PATH.value], suffix="expected_")
+        if self.settings[Tag.JSON.value][Tag.DEBUG.value] or self.settings[Tag.JSON.value][con_tag]:
+            json_data = json.dumps(data)
+            if self.settings[Tag.JSON.value][Tag.DEBUG.value]:
+                print(json_data)
+            if self.settings[Tag.JSON.value][con_tag]:
+                ul.write_json(json_data,self.settings[Tag.JSON.value][Tag.PATH.value], suffix)
+        
+        if self.settings[Tag.DIAGRAM.value][con_tag]:
+            if self.settings[Tag.DIAGRAM.value][con_tag]:
+                ul.write_diagram(suffix, data, write_diagram_flag=self.settings[Tag.DIAGRAM.value][Tag.WRITE_FILE.value], folder_path=self.settings[Tag.DIAGRAM.value][Tag.PATH.value], suffix=suffix)
 
-        return ul.compare_objects(log_data, expected_data, self.settings[Tag.ALL_MATCH.value], self.settings[Tag.DEBUG.value])
+    def run(self):
+        plantuml_jar_path = "./lib/plantuml-1.2024.6.jar"
+        jpype.startJVM(classpath=[plantuml_jar_path])
+        log_data = self.analyse_data()
+
+        expected_data = iou.read_csv(self.settings[Tag.EXPECTED_FILE.value])
+        result, notfound_comp, matched_comp, mismatched_comp = ul.compare_objects(log_data, expected_data, self.settings[Tag.ALL_MATCH.value], self.settings[Tag.DEBUG.value])
+        self.print_data(log_data, Tag.LOG.value, "log_")
+        self.print_data(expected_data, Tag.EXPECTED.value, "expected_")
+        
+        if self.settings[Tag.DIAGRAM.value][Tag.COMPARISON.value]:
+            ul.write_diagram("result", log_data, self.settings[Tag.DIAGRAM.value][Tag.WRITE_FILE.value], notfound_comp, matched_comp, mismatched_comp, self.settings[Tag.DIAGRAM.value][Tag.PATH.value], "result_")
+        jpype.shutdownJVM()
+        return result
 
 
 def main():
@@ -105,18 +125,32 @@ def main():
         settings = json.load(file)
 
     reference_structure = {
-        "log_file": "",
-        "expect_file": "",
-        "pattern": "",
+        "log_file":"",
+        "expected_file":"",
+        "search_pattern": "",
         "header": True,
         "full_scan": True,
-        "xml_output": {
+        "all_match": True,
+        "debug": True,
+        "xml": {
+            "debug": True,
             "log": True,
-            "test": True,
+            "expected": True,
             "path": ""
         },
-        "all_match": True,
-        "debug": True
+        "json": {
+            "debug": True,
+            "log": True,
+            "expected": True,
+            "path": ""
+        },
+        "diagram": {
+            "log": True,
+            "expected": True,
+            "comparison": True,
+            "write_file": True,
+            "path": ""
+        }
     }
 
     if ul.validate_json_structure(settings, reference_structure):

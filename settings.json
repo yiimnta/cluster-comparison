@@ -1,14 +1,28 @@
 {
     "log_file":"./data/data.log",
-    "expect_file":"./data/testdata.csv",
-    "pattern": "./pattern.json",
+    "expected_file":"./data/testdata.csv",
+    "search_pattern": "./pattern.json",
     "header": true,
     "full_scan": false,
-    "xml_output": {
-        "log": true,
-        "test": true,
+    "all_match": true,
+    "debug": true,
+    "xml": {
+        "debug": false,
+        "log": false,
+        "expected": false,
         "path": "./xml/"
     },
-    "all_match": true,
-    "debug": true
+    "json": {
+        "debug": false,
+        "log": true,
+        "expected": false,
+        "path": "./json/"
+    },
+    "diagram": {
+        "log": true,
+        "expected": false,
+        "comparison": true,
+        "write_file": true,
+        "path": "./uml/"
+    }
 }
