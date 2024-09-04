@@ -5,6 +5,9 @@ import io_utils as iou
 import utils as ul
 from enum import Enum
 import jpype
+from PyQt5.QtWidgets import QApplication
+from graphwin import GraphWindow
+import sys
 
 class Tag(Enum):
     LOG_FILE = "log_file"
@@ -24,6 +27,7 @@ class Tag(Enum):
     ALL_MATCH = "all_match"
     COMPARISON = "comparison"
     WRITE_FILE = "write_file"
+    HEAD_TABS = "head_split_into_tabs"
 
 class Program:
     def __init__(self, settings: json, pattern: json):
@@ -88,14 +92,8 @@ class Program:
                 print(json_data)
             if self.settings[Tag.JSON.value][con_tag]:
                 ul.write_json(json_data,self.settings[Tag.JSON.value][Tag.PATH.value], suffix)
-        
-        if self.settings[Tag.DIAGRAM.value][con_tag]:
-            if self.settings[Tag.DIAGRAM.value][con_tag]:
-                ul.write_diagram(suffix, data, write_diagram_flag=self.settings[Tag.DIAGRAM.value][Tag.WRITE_FILE.value], folder_path=self.settings[Tag.DIAGRAM.value][Tag.PATH.value], suffix=suffix)
 
     def run(self):
-        plantuml_jar_path = "./lib/plantuml-1.2024.6.jar"
-        jpype.startJVM(classpath=[plantuml_jar_path])
         log_data = self.analyse_data()
 
         expected_data = iou.read_csv(self.settings[Tag.EXPECTED_FILE.value])
@@ -104,8 +102,14 @@ class Program:
         self.print_data(expected_data, Tag.EXPECTED.value, "expected_")
         
         if self.settings[Tag.DIAGRAM.value][Tag.COMPARISON.value]:
-            ul.write_diagram("result", log_data, self.settings[Tag.DIAGRAM.value][Tag.WRITE_FILE.value], notfound_comp, matched_comp, mismatched_comp, self.settings[Tag.DIAGRAM.value][Tag.PATH.value], "result_")
-        jpype.shutdownJVM()
+            plantuml_jar_path = "./lib/plantuml-1.2024.6.jar"
+            jpype.startJVM(classpath=[plantuml_jar_path])
+            app = QApplication(sys.argv)
+            window = GraphWindow("Test Program", log_data, self.settings[Tag.DIAGRAM.value][Tag.HEAD_TABS.value], self.settings[Tag.DIAGRAM.value][Tag.WRITE_FILE.value], notfound_comp, matched_comp, mismatched_comp, self.settings[Tag.DIAGRAM.value][Tag.PATH.value], "result_")
+            jpype.shutdownJVM()
+            window.show()
+            sys.exit(app.exec_())
+
         return result
 
 
@@ -149,6 +153,7 @@ def main():
             "expected": True,
             "comparison": True,
             "write_file": True,
+            "head_split_into_tabs": True,
             "path": ""
         }
     }

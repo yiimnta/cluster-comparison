@@ -23,6 +23,7 @@
         "expected": false,
         "comparison": true,
         "write_file": true,
+        "head_split_into_tabs": true,
         "path": "./uml/"
     }
 }
