@@ -97,7 +97,7 @@ class Program:
         log_data = self.analyse_data()
 
         expected_data = iou.read_csv(self.settings[Tag.EXPECTED_FILE.value])
-        result, notfound_comp, matched_comp, mismatched_comp = ul.compare_objects(log_data, expected_data, self.settings[Tag.ALL_MATCH.value], self.settings[Tag.DEBUG.value])
+        result, log_messages, notfound_comp, matched_comp, mismatched_comp = ul.compare_objects(log_data, expected_data, self.settings[Tag.ALL_MATCH.value], self.settings[Tag.DEBUG.value])
         self.print_data(log_data, Tag.LOG.value, "log_")
         self.print_data(expected_data, Tag.EXPECTED.value, "expected_")
         
@@ -105,7 +105,7 @@ class Program:
             plantuml_jar_path = "./lib/plantuml-1.2024.6.jar"
             jpype.startJVM(classpath=[plantuml_jar_path])
             app = QApplication(sys.argv)
-            window = GraphWindow("Test Program", log_data, self.settings[Tag.DIAGRAM.value][Tag.HEAD_TABS.value], self.settings[Tag.DIAGRAM.value][Tag.WRITE_FILE.value], notfound_comp, matched_comp, mismatched_comp, self.settings[Tag.DIAGRAM.value][Tag.PATH.value], "result_")
+            window = GraphWindow("K-TRACE Pilot", log_data, self.settings[Tag.DIAGRAM.value][Tag.HEAD_TABS.value], self.settings[Tag.DIAGRAM.value][Tag.WRITE_FILE.value], log_messages, notfound_comp, matched_comp, mismatched_comp, self.settings[Tag.DIAGRAM.value][Tag.PATH.value], "result_")
             jpype.shutdownJVM()
             window.show()
             sys.exit(app.exec_())

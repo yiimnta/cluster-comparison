@@ -1,15 +1,9 @@
 import re
 import os
-import sys
 import json
-
 import xml.etree.ElementTree as ET
 from dict2xml import dict2xml
 from datetime import datetime
-from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsView
-from PyQt5.QtGui import QPixmap, QPainter
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
 
 def parse_value(str : str) -> (str | float):
     str = str.strip()
@@ -31,6 +25,7 @@ def compare_objects(input_objs: dict, test_objs: dict, all=False, debug=False) -
     notfound_comp = []
     matched_comp = []
     mismatched_comp = []
+    log_messages = []
 
     def compare_recursive(one_match, input_data, test_data, notfound_comp, matched_comp, mismatched_comp, path=""):
         all_match = True
@@ -43,16 +38,19 @@ def compare_objects(input_objs: dict, test_objs: dict, all=False, debug=False) -
                     all_match = all_match and match
                 else:
                     print(f"{new_path}: not found in LOG.")
+                    log_messages.append(f"{new_path}: not found in LOG.")
                     notfound_comp.append(new_path)
                     all_match = False
         else:
             if input_data != test_data:
                 print(f"\033[31mFAIL::{path}: LOG = '{input_data}', EXPECTED = '{test_data}'\033[0m")
+                log_messages.append(f"FAIL::{path}: LOG = '{input_data}', EXPECTED = '{test_data}'")
                 mismatched_comp.append(path)
                 all_match = False
             elif debug:
                 one_match = True
                 matched_comp.append(path)
+                log_messages.append(f"OK::::{path} = {test_data}")
                 print(f"OK::::{path} = {test_data}")
 
         return all_match
@@ -61,8 +59,9 @@ def compare_objects(input_objs: dict, test_objs: dict, all=False, debug=False) -
 
     if not all_match:
         print("\033[93mTEST OK. BUT there are mismatches between LOG and EXPECTED.\033[0m")
+        log_messages.append("TEST OK. BUT there are mismatches between LOG and EXPECTED.")
 
-    return not all or all_match, notfound_comp, matched_comp, mismatched_comp
+    return not all or all_match, log_messages, notfound_comp, matched_comp, mismatched_comp
 
 
 def dict_to_xml(data: dict, wrap = "root", indent ="   ") -> ET.Element:
