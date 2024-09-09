@@ -53,7 +53,6 @@ class Program:
             return {}
         
         self.read_pattern(self.pattern, obj_clusters, log_objects)
-        
         return log_objects
 
         
@@ -78,6 +77,10 @@ class Program:
                         continue
                     self.read_pattern(child, child_clusters, output_objects[obj_id])
 
+    def export_expected_data(self):
+        log_data = self.analyse_data()
+        ul.write_expected_file(log_data, folder_path="./export/")
+    
     def print_data(self, data, con_tag, suffix): 
         if self.settings[Tag.XML.value][Tag.DEBUG.value] or self.settings[Tag.XML.value][con_tag]:
             xml_data = ul.dict_to_xml(data)
@@ -91,7 +94,7 @@ class Program:
             if self.settings[Tag.JSON.value][Tag.DEBUG.value]:
                 print(json_data)
             if self.settings[Tag.JSON.value][con_tag]:
-                ul.write_json(json_data,self.settings[Tag.JSON.value][Tag.PATH.value], suffix)
+                ul.write_json(data,self.settings[Tag.JSON.value][Tag.PATH.value], suffix)
 
     def run(self):
         log_data = self.analyse_data()
@@ -100,12 +103,12 @@ class Program:
         result, log_messages, notfound_comp, matched_comp, mismatched_comp = ul.compare_objects(log_data, expected_data, self.settings[Tag.ALL_MATCH.value], self.settings[Tag.DEBUG.value])
         self.print_data(log_data, Tag.LOG.value, "log_")
         self.print_data(expected_data, Tag.EXPECTED.value, "expected_")
-        
+
         if self.settings[Tag.DIAGRAM.value][Tag.COMPARISON.value]:
             plantuml_jar_path = "./lib/plantuml-1.2024.6.jar"
             jpype.startJVM(classpath=[plantuml_jar_path])
             app = QApplication(sys.argv)
-            window = GraphWindow("K-TRACE Pilot", log_data, self.settings[Tag.DIAGRAM.value][Tag.HEAD_TABS.value], self.settings[Tag.DIAGRAM.value][Tag.WRITE_FILE.value], log_messages, notfound_comp, matched_comp, mismatched_comp, self.settings[Tag.DIAGRAM.value][Tag.PATH.value], "result_")
+            window = GraphWindow("K-TRACE Pilot", log_data, expected_data, self.settings[Tag.DIAGRAM.value][Tag.HEAD_TABS.value], self.settings[Tag.DIAGRAM.value][Tag.WRITE_FILE.value], log_messages, notfound_comp, matched_comp, mismatched_comp, self.settings[Tag.DIAGRAM.value][Tag.PATH.value], "result_")
             jpype.shutdownJVM()
             window.show()
             sys.exit(app.exec_())
